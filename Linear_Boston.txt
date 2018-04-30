@@ -1,0 +1,65 @@
+from sklearn import datasets
+from sklearn.cross_validation import cross_val_predict
+from sklearn import linear_model
+import matplotlib.pyplot as plt
+
+boston = datasets.load_boston()
+#print(boston.DESCR) #CRIM(犯罪率) ZN(房屋大於25000ft比率) INDUS(住宅比率) CHAS(有無臨河) NOX(空汙比率) RM(房間數) AGE(自有住宅比例)
+#DIS(離市中心距離) RAD(離高速公路距離) TAX(房屋稅率) PTRATIO(小學老師比例) B(黑人比率) LSTAT(低收入比率) MEDV(受雇者收入)
+#print(boston.target)
+#print(boston.data)
+
+y = boston.target
+# cross_val_predict returns an array of the same size as `y` where each entry
+# is a prediction obtained by cross validated:
+
+lr = linear_model.LinearRegression()
+predicted = cross_val_predict(lr, boston.data, y, cv=10)  #分成十份來訓練，其中一份為測試集
+
+fig, ax = plt.subplots()
+ax.scatter(y, predicted)
+ax.plot([y.min(), y.max()], [y.min(), y.max()], 'k--', lw=4)
+ax.set_xlabel('Measured')
+ax.set_ylabel('Predicted')
+plt.show()
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
+
+from sklearn.linear_model import LinearRegression
+from sklearn.isotonic import IsotonicRegression
+from sklearn.utils import check_random_state
+
+n = 100
+x = np.arange(n)
+rs = check_random_state(0)
+y = rs.randint(-50, 50, size=(n,)) + 50. * np.log(1 + np.arange(n))
+
+###############################################################################
+# Fit IsotonicRegression and LinearRegression models
+
+ir = IsotonicRegression()
+
+y_ = ir.fit_transform(x, y)
+
+lr = LinearRegression()
+lr.fit(x[:, np.newaxis], y)  # x needs to be 2d for LinearRegression
+
+###############################################################################
+# plot result
+
+segments = [[[i, y[i]], [i, y_[i]]] for i in range(n)]
+lc = LineCollection(segments, zorder=0)
+lc.set_array(np.ones(len(y)))
+lc.set_linewidths(0.5 * np.ones(n))
+
+fig = plt.figure()
+plt.plot(x, y, 'r.', markersize=12)
+plt.plot(x, y_, 'g.-', markersize=12)
+plt.plot(x, lr.predict(x[:, np.newaxis]), 'b-')
+plt.gca().add_collection(lc)
+plt.legend(('Data', 'Isotonic Fit', 'Linear Fit'), loc='lower right')
+plt.title('Isotonic regression')
+plt.show()
